@@ -1,0 +1,43 @@
+#!/bin/bash
+# vim: set ts=4 sts=4 sw=4 et:
+
+LDAP_HOST="${LDAP_HOST:-ldap1.example.com ldap2.example.com}"
+LDAP_PORT="${LDAP_PORT:-389}"
+LDAP_USER="${LDAP_USER:-cn=admin,dc=example,dc=com}"
+LDAP_PASS="${LDAP_PASS:-password}"
+LDAP_BASEDN="${LDAP_BASEDN:-dc=example,dc=com}"
+LDAP_RADIUS_ACCESS_GROUP="${LDAP_RADIUS_ACCESS_GROUP:-}"
+RADIUS_CLIENT_CREDENTIALS="${RADIUS_CLIENT_CREDENTIALS:-}"
+
+# to turn on debugging, use "-x -f -l stdout"
+RADIUSD_ARGS="${RADIUSD_ARGS:--f -l stdout}"
+
+ldap_subst() {
+    sed -i -e "s/${1}/${2}/g" /etc/freeradius/3.0/mods-available/ldap
+}
+
+# substitute variables into LDAP configuration file
+ldap_subst "@LDAP_HOST@" "${LDAP_HOST}"
+ldap_subst "@LDAP_PORT@" "${LDAP_PORT}"
+ldap_subst "@LDAP_USER@" "${LDAP_USER}"
+ldap_subst "@LDAP_PASS@" "${LDAP_PASS}"
+ldap_subst "@LDAP_BASEDN@" "${LDAP_BASEDN}"
+ldap_subst "@LDAP_RADIUS_ACCESS_GROUP@" "${LDAP_RADIUS_ACCESS_GROUP}"
+
+# setup clients
+IFS=$',' read -ra RADIUS_CLIENT_CREDENTIALS_ARRAY <<< "$RADIUS_CLIENT_CREDENTIALS"
+for i in "${RADIUS_CLIENT_CREDENTIALS_ARRAY[@]}"; do
+    CLIENT="${i%%:*}"
+    SECRET="${i#*:}"
+    cat >> /etc/freeradius/3.0/clients.conf << EOF
+client $CLIENT {
+    secret = $SECRET
+    shortname = $CLIENT
+    ipaddr = $CLIENT
+    nas_type = other
+}
+EOF
+done
+
+# run radiusd
+exec /usr/bin/tini -- /usr/sbin/freeradius $RADIUSD_ARGS
