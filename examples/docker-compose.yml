@@ -1,0 +1,14 @@
+radius:
+  image: worawat/freeradius-freeipa
+  ports:
+    - "1812:1812/udp"
+    - "1813:1813/udp"
+  environment:
+    - "LDAP_HOST=x.x.x.x y.y.y.y"
+    - "LDAP_PORT=389"
+    - "LDAP_USER=uid=admin,cn=users,cn=accounts,dc=example,dc=com"
+    - "LDAP_PASS=admin_password"
+    - "LDAP_BASEDN=dc=example,dc=com"
+    - "LDAP_RADIUS_ACCESS_GROUP=vpnusers"
+    - "RADIUS_CLIENT_CREDENTIALS=1.2.3.4:testing123,5.6.7.8:testing456"
+  restart: "always"
