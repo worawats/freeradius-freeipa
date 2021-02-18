@@ -6,7 +6,7 @@ radius:
   environment:
     - "LDAP_HOST=x.x.x.x y.y.y.y"
     - "LDAP_PORT=389"
-    - "LDAP_USER=uid=admin,cn=users,cn=accounts,dc=example,dc=com"
+    - "LDAP_USER=admin"
     - "LDAP_PASS=admin_password"
     - "LDAP_BASEDN=dc=example,dc=com"
     - "LDAP_RADIUS_ACCESS_GROUP=vpnusers"
